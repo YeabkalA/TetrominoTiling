@@ -5,15 +5,6 @@
 // Orientation for a tetromino
 enum TetrominoOrientation { UP, DOWN, LEFT, RIGHT };
 
-class Coordinate {
-public:
-  int X() { return x; }
-  int Y() { return y; }
-private:
-  int x;
-  int y;
-};
-
 class Tetromino {
 public:
   Tetromino(TetrominoOrientation orntn, int startingLoc, 
