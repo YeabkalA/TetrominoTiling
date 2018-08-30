@@ -17,8 +17,7 @@ private:
 class Tetromino {
 public:
   Tetromino(TetrominoOrientation orntn, int startingLoc, 
-            int width /* width of the grid where the tetromino lives */,
-            int ind /* index of the grid cell where the tetromino 'starts' */) {
+            int width /* width of the grid where the tetromino lives */) {
     orientation = orntn;
     switch(orntn) {
     case UP:
@@ -34,7 +33,7 @@ public:
       coveredCells = {startingLoc, startingLoc + 1, startingLoc + 2, startingLoc + 1 + width};
       break;
     }
-    cnsInd = ind;
+    cnsInd = startingLoc;
   }
   TetrominoOrientation Orientation() { return orientation; }
   int* CoveredCells() { return coveredCells; }
@@ -60,6 +59,16 @@ public:
       cellMap.insert(std::pair<int, std::vector<Tetromino*> >(index, map));
     } else {
       cellMap.find(index)->second.push_back(tetromino);
+    }
+  }
+
+  void FillMap() {
+    int noCells = width * height;
+    for (int i = 1; i <= noCells; i++) {
+      Tetromino t[] = {Tetromino(UP, i, width), Tetromino(DOWN, i, width), Tetromino(LEFT, i, width), Tetromino(RIGHT, i, width)};
+      for(Tetromino tetr: t) {
+	AddMapping(i, &tetr);
+      }
     }
   }
 private:
