@@ -38,6 +38,15 @@ public:
   TetrominoOrientation Orientation() { return orientation; }
   int* CoveredCells() { return coveredCells; }
   int CNSInd() { return cnsInd; }
+
+  bool ContainsBadCell() {
+    for(int cell: coveredCells) {
+      if (cell <0) {
+	return false;
+      }
+    }
+    return true;
+  }
 private:
   TetrominoOrientation orientation;
   int coveredCells[4];
@@ -53,6 +62,10 @@ public:
 
   // Associate a cell and a tetromino.
   void AddMapping(int index, Tetromino* tetromino) {
+    if (std::find(std::begin(avoidedCells), std::end(avoidedCells), index) != std::end(array) ||
+	tetromino->ContainsBadCell()) {
+      return;
+    }
     if (cellMap.find(index) == cellMap.end()) {
       std::vector<Tetromino*> map;
       map.push_back(tetromino);
@@ -76,4 +89,5 @@ private:
   std::vector<Tetromino*> tetrominos;
   int width;
   int height;
+  int* avoidedCells;
 };
