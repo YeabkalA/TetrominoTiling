@@ -33,10 +33,10 @@ public:
   bool ContainsBadCell() {
     for(int cell: coveredCells) {
       if (cell <0) {
-	return false;
+	return true;
       }
     }
-    return true;
+    return false;
   }
 private:
   TetrominoOrientation orientation;
