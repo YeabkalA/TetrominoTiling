@@ -1,7 +1,9 @@
 #include <iostream>
+#include <map>
+#include <vector>
 
 // Orientation for a tetromino
-enum Orienation { UP, DOWN, LEFT, RIGHT };
+enum TetrominoOrientation { UP, DOWN, LEFT, RIGHT };
 
 class Coordinate {
 public:
@@ -14,7 +16,7 @@ private:
 
 class Tetromino {
 public:
-  Tetromino(Orienation orntn, int startingLoc, 
+  Tetromino(TetrominoOrientation orntn, int startingLoc, 
             int width /* width of the grid where the tetromino lives */,
             int ind /* index of the grid cell where the tetromino 'starts' */) {
     orientation = orntn;
@@ -34,11 +36,11 @@ public:
     }
     cnsInd = ind;
   }
-  Orientation Orientation() { return orientation; }
-  int[] CoveredCells() { return coveredCells; }
+  TetrominoOrientation Orientation() { return orientation; }
+  int* CoveredCells() { return coveredCells; }
   int CNSInd() { return cnsInd; }
 private:
-  Orienation orienation;
+  TetrominoOrientation orientation;
   int coveredCells[4];
   int cnsInd;
 };
@@ -52,16 +54,16 @@ public:
 
   // Associate a cell and a tetromino.
   void AddMapping(int index, Tetromino* tetromino) {
-    if (cellMap.find(ind) == cellMap.end()) {
+    if (cellMap.find(index) == cellMap.end()) {
       std::vector<Tetromino*> map;
       map.push_back(tetromino);
-      cellMap.insert(std::pair<int, std::vector<Tetromino*>>(index, map));
+      cellMap.insert(std::pair<int, std::vector<Tetromino*> >(index, map));
     } else {
-      cellMap.find(ind)->second.push_back(tetromino);
+      cellMap.find(index)->second.push_back(tetromino);
     }
   }
 private:
-  std::map<int, std::vector<Tetromino*>> cellMap;
+  std::map<int, std::vector<Tetromino*> > cellMap;
   std::vector<Tetromino*> tetrominos;
   int width;
   int height;
