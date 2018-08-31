@@ -43,7 +43,7 @@ public:
   int* CoveredCells() { return coveredCells; }
   int CNSInd() { return cnsInd; }
 
-  bool ContainsBadCell() {
+  bool CoversBadCell() {
     for(int cell: coveredCells) {
       if (cell <0) {
 	return true;
@@ -68,7 +68,7 @@ public:
   // Associate a cell and a tetromino.
   void AddMapping(int index, Tetromino* tetromino) {
     if (std::find(avoidedCells.begin(), avoidedCells.end(), index) != avoidedCells.end() ||
-	tetromino->ContainsBadCell()) {
+	tetromino->CoversBadCell()) {
       return;
     }
     if (cellMap.find(index) == cellMap.end()) {
