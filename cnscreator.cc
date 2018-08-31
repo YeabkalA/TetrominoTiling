@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 // Orientation for a tetromino
 enum TetrominoOrientation { UP, DOWN, LEFT, RIGHT };
@@ -12,16 +13,28 @@ public:
     orientation = orntn;
     switch(orntn) {
     case UP:
-      coveredCells = {startingLoc, startingLoc + 1, startingLoc + 2, startingLoc - width + 1};
+      coveredCells[0] = startingLoc;
+      coveredCells[1] = startingLoc + 1;
+      coveredCells[2] = startingLoc + 3;
+      coveredCells[3] = startingLoc - width + 1;
       break;
     case LEFT:
-      coveredCells = {startingLoc, startingLoc + width, startingLoc + 2*width, startingLoc - 1};
+      coveredCells[0] = startingLoc;
+      coveredCells[1] = startingLoc + width;
+      coveredCells[2] = startingLoc + 2*width;
+      coveredCells[3] = startingLoc - 1;
       break;
     case RIGHT:
-      coveredCells = {startingLoc, startingLoc + width, startingLoc + 2*width, startingLoc + 1};
+      coveredCells[0] = startingLoc;
+      coveredCells[1] = startingLoc + width;
+      coveredCells[2] = startingLoc + 2*width;
+      coveredCells[3] = startingLoc + 1;
       break;
     case DOWN:
-      coveredCells = {startingLoc, startingLoc + 1, startingLoc + 2, startingLoc + 1 + width};
+      coveredCells[0] = startingLoc;
+      coveredCells[1] = startingLoc + 1;
+      coveredCells[2] = startingLoc + 3;
+      coveredCells[3] = startingLoc + width + 1;
       break;
     }
     cnsInd = startingLoc;
@@ -46,14 +59,15 @@ private:
 
 class Grid {
 public:
-  Grid(int w, int h) {
+  Grid(int w, int h, std::vector<int> avoidedList) {
     width = w;
     height = h;
+    avoidedCells = avoidedList;
   }
 
   // Associate a cell and a tetromino.
   void AddMapping(int index, Tetromino* tetromino) {
-    if (std::find(std::begin(avoidedCells), std::end(avoidedCells), index) != std::end(array) ||
+    if (std::find(avoidedCells.begin(), avoidedCells.end(), index) != avoidedCells.end() ||
 	tetromino->ContainsBadCell()) {
       return;
     }
@@ -80,5 +94,5 @@ private:
   std::vector<Tetromino*> tetrominos;
   int width;
   int height;
-  int* avoidedCells;
+  std::vector<int> avoidedCells;
 };
