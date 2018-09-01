@@ -39,17 +39,28 @@ public:
     }
     cnsInd = startingLoc;
   }
+  
   TetrominoOrientation Orientation() { return orientation; }
+  
   int* CoveredCells() { return coveredCells; }
+  
   int CNSInd() { return cnsInd; }
 
   bool CoversBadCell() {
     for(int cell: coveredCells) {
-      if (cell <0) {
+      if (cell < 0) {
 	return true;
       }
     }
     return false;
+  }
+
+  void SetIndex(int ind) { cnsInd = ind; }
+
+  void Print() {
+    std::cout << "Orientation " << orientation << ", covered cells are:\n";
+    for (int cell: coveredCells) { std::cout << cell << "-"; }
+    std::cout << std::endl;
   }
 private:
   TetrominoOrientation orientation;
@@ -67,20 +78,24 @@ public:
 
   // Associate a cell and a tetromino.
   void AddMapping(int index, Tetromino* tetromino) {
+    std::cout << "Trying to add to map for ind = " <<index << std::endl;
     if (std::find(avoidedCells.begin(), avoidedCells.end(), index) != avoidedCells.end() ||
 	tetromino->CoversBadCell()) {
       return;
     }
     if (cellMap.find(index) == cellMap.end()) {
       std::vector<Tetromino*> map;
+      tetromino->SetIndex(index++);
       map.push_back(tetromino);
       cellMap.insert(std::pair<int, std::vector<Tetromino*> >(index, map));
     } else {
+      tetromino->SetIndex(index++);
       cellMap.find(index)->second.push_back(tetromino);
     }
   }
 
   void FillMap() {
+    std::cout << "Inside fill map " << std::endl;
     int noCells = width * height;
     for (int i = 1; i <= noCells; i++) {
       Tetromino t[] = {Tetromino(UP, i, width), Tetromino(DOWN, i, width), Tetromino(LEFT, i, width), Tetromino(RIGHT, i, width)};
@@ -89,10 +104,30 @@ public:
       }
     }
   }
+
+  void Print() {
+    for(auto i = cellMap.begin(); i != cellMap.end(); i++) {
+      std::cout << i->first << "-->\n";
+      for (Tetromino* t: i->second) {
+	t->Print();
+      }
+      std::cout << "\n**************\n";
+    }
+  }
 private:
   std::map<int, std::vector<Tetromino*> > cellMap;
   std::vector<Tetromino*> tetrominos;
   int width;
   int height;
+  int index;
   std::vector<int> avoidedCells;
 };
+
+int main() {
+  std::vector<int> avoided;
+  avoided.push_back(1);
+  Grid grid(10, 10, avoided);
+  grid.FillMap();
+  std::cout << "Hello World\n";
+  //  grid.Print();
+}
