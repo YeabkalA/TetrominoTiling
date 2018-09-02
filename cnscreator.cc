@@ -6,34 +6,52 @@
 // Orientation for a tetromino
 enum TetrominoOrientation { UP, DOWN, LEFT, RIGHT };
 
+class Dimension {
+public:
+  Dimension(int w = 4, int h = 4) {
+    width = w;
+    height = h;
+  }
+  int Width() { return width; }
+  int Height() { return height; }
+  int Size() { return width * height; }
+
+private:
+  int width;
+  int height;
+};
+
 class Tetromino {
 public:
-  Tetromino(TetrominoOrientation orntn, int startingLoc, 
-            int width /* width of the grid where the tetromino lives */) {
+  Tetromino(TetrominoOrientation orntn, int startingLoc, Dimension dimension) {
+    gridDimension = dimension;
+    int width = dimension.Width();
     orientation = orntn;
+    start = startingLoc;
+
     switch(orntn) {
     case UP:
       coveredCells[0] = startingLoc;
       coveredCells[1] = startingLoc + 1;
-      coveredCells[2] = startingLoc + 3;
+      coveredCells[2] = startingLoc + 2;
       coveredCells[3] = startingLoc - width + 1;
       break;
     case LEFT:
       coveredCells[0] = startingLoc;
       coveredCells[1] = startingLoc + width;
       coveredCells[2] = startingLoc + 2*width;
-      coveredCells[3] = startingLoc - 1;
+      coveredCells[3] = startingLoc + width - 1;
       break;
     case RIGHT:
       coveredCells[0] = startingLoc;
       coveredCells[1] = startingLoc + width;
       coveredCells[2] = startingLoc + 2*width;
-      coveredCells[3] = startingLoc + 1;
+      coveredCells[3] = startingLoc + width + 1;
       break;
     case DOWN:
       coveredCells[0] = startingLoc;
       coveredCells[1] = startingLoc + 1;
-      coveredCells[2] = startingLoc + 3;
+      coveredCells[2] = startingLoc + 2;
       coveredCells[3] = startingLoc + width + 1;
       break;
     }
@@ -41,18 +59,34 @@ public:
   }
   
   TetrominoOrientation Orientation() { return orientation; }
-  
+
   int* CoveredCells() { return coveredCells; }
-  
+
   int CNSInd() { return cnsInd; }
 
-  bool CoversBadCell() {
-    for(int cell: coveredCells) {
-      if (cell < 0) {
-	return true;
+  bool IsValid(std::vector<int>* avoidedCells = nullptr) {
+    if (avoidedCells != nullptr) {
+      for (int cell : coveredCells) {
+        if (std::find(avoidedCells->begin(), avoidedCells->end(), cell) != avoidedCells->end()) {
+          return false;
+        }
       }
     }
-    return false;
+
+    // Check that the tetromino lies inside its grid.
+    if (start < 1 || start > gridDimension.Size()) {
+      return false;
+    }
+
+    if (orientation == RIGHT) {
+      return start % gridDimension.Width() != 0 && gridDimension.Size() - start >= 2*gridDimension.Width(); 
+    } else if (orientation == LEFT) {
+      return (start - 1) % gridDimension.Width() !=0 && gridDimension.Size() - start >= 2*gridDimension.Width();
+    } else if (orientation == UP) {
+      return (start > gridDimension.Width()) && (((start + 1) % gridDimension.Width()) != 0) && (start % gridDimension.Width() != 0);
+    } else {
+      return gridDimension.Size() - start < gridDimension.Width() && gridDimension.Width() != 0 && start % gridDimension.Width() != 0;
+    }
   }
 
   void SetIndex(int ind) { cnsInd = ind; }
@@ -61,73 +95,88 @@ public:
     std::cout << "Orientation " << orientation << ", covered cells are:\n";
     for (int cell: coveredCells) { std::cout << cell << "-"; }
     std::cout << std::endl;
+    std::cout << "-------------------------\n";
   }
 private:
   TetrominoOrientation orientation;
   int coveredCells[4];
   int cnsInd;
+  Dimension gridDimension;
+  int start = 0;
 };
 
 class Grid {
 public:
-  Grid(int w, int h, std::vector<int> avoidedList) {
-    width = w;
-    height = h;
-    avoidedCells = avoidedList;
+  Grid(Dimension d) {
+    dimension = d;
+  }
+
+  Grid(int w, int h) {
+    dimension = Dimension(w,h);
   }
 
   // Associate a cell and a tetromino.
-  void AddMapping(int index, Tetromino* tetromino) {
-    std::cout << "Trying to add to map for ind = " <<index << std::endl;
-    if (std::find(avoidedCells.begin(), avoidedCells.end(), index) != avoidedCells.end() ||
-	tetromino->CoversBadCell()) {
+  void AddMapping(int index, Tetromino tetromino) {
+    std::cout << "Trying to add to map for ind = " << index << std::endl;
+    std::cout << "Tetr is " << std::endl;
+    tetromino.Print();
+    if (!tetromino.IsValid()) {
+      std::cout << "End validation" << std::endl;
       return;
     }
+    std::cout << "Going to the key checking stage" << std::endl;
+    std::cout << "Map size " << cellMap.size() << "checking at index " << index << std::endl;
     if (cellMap.find(index) == cellMap.end()) {
-      std::vector<Tetromino*> map;
-      tetromino->SetIndex(index++);
-      map.push_back(tetromino);
-      cellMap.insert(std::pair<int, std::vector<Tetromino*> >(index, map));
+      std::cout << "Key not found." << std::endl;
+      cellMap.insert(std::pair<int, std::vector<Tetromino> >(index, std::vector<Tetromino>()));
+      tetromino.SetIndex(index++);
+      cellMap[index].push_back(tetromino);\
     } else {
-      tetromino->SetIndex(index++);
-      cellMap.find(index)->second.push_back(tetromino);
+      std::cout << "Key is found." << std::endl;
+      tetromino.SetIndex(index++);
+      cellMap[index].push_back(tetromino);
     }
+    std::cout << "End validation2" << std::endl;
   }
 
   void FillMap() {
     std::cout << "Inside fill map " << std::endl;
-    int noCells = width * height;
-    for (int i = 1; i <= noCells; i++) {
-      Tetromino t[] = {Tetromino(UP, i, width), Tetromino(DOWN, i, width), Tetromino(LEFT, i, width), Tetromino(RIGHT, i, width)};
+    for (int i = 1; i <= dimension.Size(); i++) {
+      if (std::find(avoidedCells.begin(), avoidedCells.end(), i) != avoidedCells.end()) {
+        continue;
+      }
+      Tetromino t[] = {Tetromino(UP, i, dimension), Tetromino(DOWN, i, dimension), Tetromino(LEFT, i, dimension), Tetromino(RIGHT, i, dimension)};
       for(Tetromino tetr: t) {
-	AddMapping(i, &tetr);
+	AddMapping(i, tetr);
       }
     }
+  }
+
+  void AddAvoidedCell(int ind) {
+    avoidedCells.push_back(ind);
   }
 
   void Print() {
     for(auto i = cellMap.begin(); i != cellMap.end(); i++) {
       std::cout << i->first << "-->\n";
-      for (Tetromino* t: i->second) {
-	t->Print();
+      for (Tetromino t: i->second) {
+	t.Print();
       }
       std::cout << "\n**************\n";
     }
   }
 private:
-  std::map<int, std::vector<Tetromino*> > cellMap;
-  std::vector<Tetromino*> tetrominos;
-  int width;
-  int height;
+  std::map<int, std::vector<Tetromino> > cellMap;
+  Dimension dimension;
   int index;
   std::vector<int> avoidedCells;
 };
 
 int main() {
-  std::vector<int> avoided;
-  avoided.push_back(1);
-  Grid grid(10, 10, avoided);
-  grid.FillMap();
+  Dimension d(4,4);
+  Grid grid(d);
+  grid.AddAvoidedCell(1);
+  (&grid)->FillMap();
   std::cout << "Hello World\n";
-  //  grid.Print();
+  grid.Print();
 }
