@@ -117,26 +117,18 @@ public:
 
   // Associate a cell and a tetromino.
   void AddMapping(int index, Tetromino tetromino) {
-    std::cout << "Trying to add to map for ind = " << index << std::endl;
-    std::cout << "Tetr is " << std::endl;
     tetromino.Print();
     if (!tetromino.IsValid()) {
-      std::cout << "End validation" << std::endl;
       return;
     }
-    std::cout << "Going to the key checking stage" << std::endl;
-    std::cout << "Map size " << cellMap.size() << "checking at index " << index << std::endl;
     if (cellMap.find(index) == cellMap.end()) {
-      std::cout << "Key not found." << std::endl;
       cellMap.insert(std::pair<int, std::vector<Tetromino> >(index, std::vector<Tetromino>()));
       tetromino.SetIndex(index++);
       cellMap[index].push_back(tetromino);\
     } else {
-      std::cout << "Key is found." << std::endl;
       tetromino.SetIndex(index++);
       cellMap[index].push_back(tetromino);
     }
-    std::cout << "End validation2" << std::endl;
   }
 
   void FillMap() {
