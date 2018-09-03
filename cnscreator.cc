@@ -172,6 +172,10 @@ public:
 
   void AddAvoidedCell(int ind) { avoidedCells.push_back(ind); }
 
+  void GenerateCoveredClauses() {
+    
+  }
+
   void Print() {
     for(auto i = cellMap.begin(); i != cellMap.end(); i++) {
       std::cout << i->first << "-->\n";
