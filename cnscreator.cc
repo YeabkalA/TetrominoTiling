@@ -81,13 +81,19 @@ public:
     }
 
     if (orientation == RIGHT) {
-      return start % gridDimension.Width() != 0 && gridDimension.Size() - start >= 2*gridDimension.Width(); 
+      return start % gridDimension.Width() != 0
+	&& gridDimension.Size() - start >= 2*gridDimension.Width(); 
     } else if (orientation == LEFT) {
-      return (start - 1) % gridDimension.Width() !=0 && gridDimension.Size() - start >= 2*gridDimension.Width();
+      return (start - 1) % gridDimension.Width() !=0
+	&& gridDimension.Size() - start >= 2*gridDimension.Width();
     } else if (orientation == UP) {
-      return (start > gridDimension.Width()) && (((start + 1) % gridDimension.Width()) != 0) && (start % gridDimension.Width() != 0);
+      return (start > gridDimension.Width())
+	&& (((start + 1) % gridDimension.Width()) != 0)
+	&& (start % gridDimension.Width() != 0);
     } else {
-      return gridDimension.Size() - start < gridDimension.Width() && gridDimension.Width() != 0 && start % gridDimension.Width() != 0;
+      return (gridDimension.Size() - start < gridDimension.Width())
+	&& gridDimension.Width() != 0
+	&& start % gridDimension.Width() != 0;
     }
   }
 
@@ -114,12 +120,12 @@ private:
 
 class Grid {
 public:
-  Grid(Dimension d, std::initializer_list<int> avoided = {})
+  Grid(Dimension d, std::initializer_list<int> avoided)
     : dimension(d), index(0) {
     for(int cell: avoided) { avoidedCells.push_back(cell); }
   }
 
-  Grid(int w, int h, std::initializer_list<int> avoided = {})
+  Grid(int w, int h, std::initializer_list<int> avoided)
     : dimension(Dimension(w,h)), index(0) {
     for(int cell: avoided) { avoidedCells.push_back(cell); }
   }
@@ -142,7 +148,10 @@ public:
       if (std::find(avoidedCells.begin(), avoidedCells.end(), i) != avoidedCells.end()) {
         continue;
       }
-      Tetromino t[] = {Tetromino(UP, i, dimension), Tetromino(DOWN, i, dimension), Tetromino(LEFT, i, dimension), Tetromino(RIGHT, i, dimension)};
+      Tetromino t[] = {Tetromino(UP, i, dimension),
+		       Tetromino(DOWN, i, dimension),
+		       Tetromino(LEFT, i, dimension),
+		       Tetromino(RIGHT, i, dimension)};
       for(Tetromino tetr: t) {
 	if (tetr.IsValid(&avoidedCells)) {
 	  tetr.SetIndex(index++);
