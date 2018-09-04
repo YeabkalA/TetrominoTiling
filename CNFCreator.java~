@@ -164,7 +164,7 @@ public class CNFCreator {
 	    for(int cell: this.cellMap.keySet()) {
 		int listSize = this.cellMap.get(cell).size();
 		for(int i = 0; i < listSize - 1; i++) {
-		    for(int j = i + 1; j < listSize; j++) {
+		    for(int j = i + 1; i < listSize; j++) {
 			Tetromino t1 = this.cellMap.get(cell).get(i);
 			Tetromino t2 = this.cellMap.get(cell).get(j);
 			this.onceClauses.add(Integer.toString(-1 * t1.getIndex()) + 
