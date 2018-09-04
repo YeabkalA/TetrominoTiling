@@ -94,9 +94,9 @@ public:
       && (((start + 1) % gridDimension.Width()) != 0)
       && (start % gridDimension.Width() != 0);
     } else {
-      return (gridDimension.Size() - start < gridDimension.Width())
-      && gridDimension.Width() != 0
-      && start % gridDimension.Width() != 0;
+      return (gridDimension.Size() - start > gridDimension.Width())
+      && (((start + 1) % gridDimension.Width()) != 0)
+      && (start % gridDimension.Width() != 0);
     }
   }
 
@@ -126,15 +126,15 @@ private:
 */
 class Grid {
 public:
-  Grid(Dimension d, std::vector<int>* avoided)
-  : dimension(d), index(0) {
+  Grid(Dimension d, std::vector<int>* avoided = nullptr)
+  : dimension(d), index(1) {
     if(avoided != nullptr) {
       for(int cell: *avoided) { avoidedCells.push_back(cell); }
     }
 }
 
-Grid(int w, int h, std::vector<int>* avoided)
-: dimension(Dimension(w,h)), index(0) {
+Grid(int w, int h, std::vector<int>* avoided = nullptr)
+: dimension(Dimension(w,h)), index(1) {
   if (avoided != nullptr) { 
     for(int cell: *avoided) { avoidedCells.push_back(cell); }
   }
@@ -178,7 +178,7 @@ void FillTetrominosList() {
 
  void GenerateCoveredClauses(int* size) {
   for (auto it=cellMap.begin(); it!=cellMap.end(); ++it) {
-    coveredClauses.push_back("c 'COVERED' " + std::to_string(it->first));
+    coveredClauses.push_back("c 'COVERED'" + std::to_string(it->first));
     auto tetrs = it->second;
     std::string out;
     for (auto t: tetrs) {
@@ -194,8 +194,10 @@ void GenerateOnceClauses(int* size) {
   int count = 0;
   for (auto it=cellMap.begin(); it!=cellMap.end(); ++it) {
     auto tetrs = it->second;
-    for(auto t1: tetrs) {
-      for(auto t2: tetrs) {
+    for(int i = 0; i < tetrs.size() -1; i++) {
+      for(int j = i + 1; j < tetrs.size(); j++) {
+        auto t1 = tetrs[i];
+        auto t2 = tetrs[j];
         onceClauses.push_back(std::to_string(-1 * t1.CNFIndex()) + " "
           + std::to_string(-1 * t2.CNFIndex()) + " 0");
         *size = *size + 1;
@@ -208,7 +210,7 @@ void GenereateCNFFile(int size, const std::string& fileName) {
   std::ofstream cnf_file;
   cnf_file.open(fileName);
 
-  std::string first_line = "p " + std::to_string(tetrominos.size())
+  std::string first_line = "p cnf " + std::to_string(tetrominos.size())
   + " " + std::to_string(size);
 
   cnf_file << first_line << std::endl;
@@ -219,6 +221,15 @@ void GenereateCNFFile(int size, const std::string& fileName) {
     cnf_file << clause << std::endl;
   }
   cnf_file.close();
+}
+
+void Run(const std::string& file_name = "problem.cnf") {
+  FillTetrominosList();
+  ConstructMap();
+  int size = 0;
+  GenerateCoveredClauses(&size);
+  GenerateOnceClauses(&size);
+  GenereateCNFFile(size, file_name);
 }
 
 void Print() {
@@ -255,15 +266,7 @@ private:
 int main() {
   Dimension d(4,4);
   std::vector<int> avoided;
-  avoided.push_back(1);
   Grid grid(d, &avoided);
-  grid.FillTetrominosList();
-  grid.ConstructMap();
-  grid.Print();
-
-  int clauseSize = 0;
-  grid.GenerateCoveredClauses(&clauseSize);
-  grid.GenerateOnceClauses(&clauseSize);
-  grid.GenereateCNFFile(clauseSize, "first.cnf");
-  // grid.GenerateCoveredClauses();
+  
+  grid.Run();
 }
