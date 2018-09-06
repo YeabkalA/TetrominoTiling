@@ -106,6 +106,7 @@ public class CNFCreator {
 		public Grid(Dimension d, HashSet<Integer> avoided) {
 			this.dimension = d;
 			this.avoidedCells = new HashSet<>(avoided);
+			this.tetrominoIndexMap = new HashMap<>();
 			this.tetrominos = new ArrayList<>();
 			this.coveredClauses = new ArrayList<>();
 			this.onceClauses = new ArrayList<>();
@@ -115,6 +116,7 @@ public class CNFCreator {
 		public Grid(int w, int h, HashSet<Integer> avoided) {
 			this.dimension = new Dimension(w,h);
 			this.avoidedCells = new HashSet<>(avoided);
+			this.tetrominoIndexMap = new HashMap<>();
 			this.tetrominos = new ArrayList<>();
 			this.coveredClauses = new ArrayList<>();
 			this.onceClauses = new ArrayList<>();
@@ -144,6 +146,7 @@ public class CNFCreator {
 				for (Tetromino tetr: t) {
 					if(tetr.isValid(this.avoidedCells)) {
 						tetr.setIndex(this.index);
+						this.tetrominoIndexMap.put(index, tetr);
 						this.index++;
 						this.tetrominos.add(tetr);
 					}
@@ -206,6 +209,7 @@ public class CNFCreator {
 		private HashMap<Integer, ArrayList<Tetromino>> cellMap;
 		private Dimension dimension;
 		private ArrayList<Tetromino> tetrominos;
+		private HashMap<Integer, Tetromino> tetrominoIndexMap;
 		private ArrayList<String> coveredClauses;
 		private ArrayList<String> onceClauses;
 		private HashSet<Integer> avoidedCells;
@@ -217,6 +221,7 @@ public class CNFCreator {
 		int width;
 		int height;
 		HashSet<Integer> selectedCells;
+		HashSet<Integer> draggedIndices;
 
 		public static int WIDTH, HEIGHT = 1000;
 
@@ -224,6 +229,7 @@ public class CNFCreator {
 			width = w;
 			height = h;
 			selectedCells = new HashSet<>();
+			draggedIndices = new HashSet<>();
 			setLayout(new BorderLayout());
 
 			mainPanel = new JPanel() {
@@ -268,11 +274,22 @@ public class CNFCreator {
 								System.out.println(selectedCells);
 							} else {
 								selectedCells.add(clickedIndex);
+								selectedCells.addAll(draggedIndices);
 								a.setColor(new Color(100, 100, 100));
 								System.out.println(selectedCells);
 							}
 							a.fillRect(widthConst * (x - 1) + 2, heightConst * (y - 1) + 2,
 									widthConst - 5, heightConst - 5);
+						}
+					});
+					
+					mainPanel.addMouseMotionListener(new MouseAdapter() {
+						public void mouseDragged(MouseEvent e) {
+							int[] coordinates = getCoordinateFromClick(
+									e.getX(), e.getY(), widthConst, heightConst);
+							int index = getIndexFromCoordinate(coordinates);
+							draggedIndices.add(index);
+							System.out.println(draggedIndices);
 						}
 					});
 				}
@@ -294,7 +311,7 @@ public class CNFCreator {
 
 			return (y-1) * this.width + x;
 		}
-		
+
 		public int[] getCoordinateFromIndex(int ind) {
 			return new int[] {ind % this.width, ind/width - 1};
 		}
@@ -302,21 +319,28 @@ public class CNFCreator {
 
 	public static void main(String[] args) throws Exception {
 		Scanner scan = new Scanner(System.in);
-		int[] dimensions = 
-				Arrays.stream(scan.nextLine().split(" ")).mapToInt(Integer::parseInt).toArray();
-		int w = dimensions[0];
-		int h = dimensions[1];
+		
+		System.out.println("TETROMIO SAT SOLVER TOOL");
+		System.out.println("Enter 1 to generate cnf file, 2 to get the display of the solution (if any)");
+		int choice = Integer.parseInt(scan.nextLine());
 
-		DisplayGrid display = new DisplayGrid(w, h);
+		if (choice == 1) {
+			System.out.println("Enter coordinate (w h) for grid.");
+			int[] dimensions = 
+					Arrays.stream(scan.nextLine().split(" ")).mapToInt(Integer::parseInt).toArray();
+			int w = dimensions[0];
+			int h = dimensions[1];
 
-		System.out.println("Enter command - gen to generate");
-		String command = scan.nextLine();
-		if (command.equals("gen")) {
-			System.out.println("Enter file name");
-			String fileName = scan.nextLine();
-			Grid grid = new Grid(new Dimension(w, h),display.selectedCells);
-			grid.run(fileName);
-			return;
+			DisplayGrid display = new DisplayGrid(w, h);
+
+			String command = scan.nextLine();
+			if (command.equals("gen")) {
+				System.out.println("Enter file name");
+				String fileName = scan.nextLine();
+				Grid grid = new Grid(new Dimension(w, h),display.selectedCells);
+				grid.run(fileName);
+				return;
+			}
 		}
 	}
 }
