@@ -256,7 +256,7 @@ public class CNFCreator {
 					}
 
 					mainPanel.addMouseListener(new MouseAdapter() {
-						public void mousePressed(MouseEvent e) {
+						public void mouseReleased(MouseEvent e) {
 							int[] coordinate = getCoordinateFromClick(
 									e.getX(), e.getY(), widthConst, heightConst);
 							int x = coordinate[0], y = coordinate[1];
