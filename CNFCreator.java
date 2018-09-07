@@ -251,12 +251,6 @@ public class CNFCreator {
 						current += widthConst;
 					}
 
-					// Dark Rectangle
-					for(int cell: selectedCells) {
-						int[] coordinate = getCoordinateFromIndex(cell);
-						int x = coordinate[0], y = coordinate[1];
-						g.fillRect(widthConst * (x - 1), heightConst * (y - 1), widthConst, heightConst);
-					}
 					// Draw horizontal lines;
 
 					current = heightConst;
@@ -314,13 +308,15 @@ public class CNFCreator {
 				f = new FileReader(fileName);
 				b = new BufferedReader(f);
 				while((line = b.readLine()) != null) {
+					System.out.println("Read ... " + line);
 					if(line.equals("SAT")) continue;
 					int[] tempSol = Arrays.stream(line.split(" ")).
 							mapToInt(Integer::parseInt).filter(cell -> cell > 0).toArray();
-					for(int i = 0; i < tempSol.length - 1; i++) { solution.add(tempSol[i]); }
+					for(int i = 0; i < tempSol.length; i++) { solution.add(tempSol[i]); }
 				}
 			} catch(IOException e) {}
 			ArrayList<Tetromino> drawnTetrominos = new ArrayList<>();
+			System.out.println("Solution is - " + solution);
 			for(int i=0; i < solution.size(); i++) {
 				drawnTetrominos.add(grid.getTetrominoIndexMap().get(solution.get(i)));
 			}
@@ -341,16 +337,17 @@ public class CNFCreator {
 					super.paintComponent(g);
 
 					// Draw vertical lines;
-					int widthConst = 1000/w;
-					int heightConst = 1000/h;
+					int widthConst = 500/w;
+					int heightConst = 500/h;
 
 					for(Tetromino t: drawnTetrominos) {
 						int[] covered = t.getCoveredCells();
-						if(t.getOrientation() == Orientation.RIGHT) {
+						System.out.println("For " + t.getIndex() + Arrays.toString(covered));
+						if(t.getOrientation() == Orientation.LEFT) {
 							g.setColor(colors[0]);
 						} else if(t.getOrientation() == Orientation.RIGHT) {
 							g.setColor(colors[1]);
-						} else if(t.getOrientation() == Orientation.RIGHT) {
+						} else if(t.getOrientation() == Orientation.UP) {
 							g.setColor(colors[2]);
 						} else {
 							g.setColor(colors[3]);
@@ -359,11 +356,16 @@ public class CNFCreator {
 							int[] coordinate = getCoordinateFromIndex(cell);
 							int x = coordinate[0], y = coordinate[1];
 							g.fillRect(widthConst * (x - 1) + 2, heightConst * (y - 1) + 2,
-									widthConst - 5, heightConst - 5);
+									widthConst, heightConst);
 						}
 					}
 				}
 			};
+
+			mainPanel.setPreferredSize(new java.awt.Dimension(500, 500));
+			add(mainPanel, BorderLayout.CENTER);
+			this.pack();
+			this.setVisible(true);
 		}
 
 
@@ -380,7 +382,16 @@ public class CNFCreator {
 		}
 
 		public int[] getCoordinateFromIndex(int ind) {
-			return new int[] {ind % this.width, ind/width - 1};
+			int modWithW = ind % this.width;
+			int x = 0, y = 0;
+			if(modWithW != 0) {
+				x = modWithW;
+				y = ind/this.width + 1;
+			} else {
+				x = this.width;
+				y = ind/this.width;
+			}
+			return new int[] {x, y};
 		}
 	}
 
@@ -416,7 +427,7 @@ public class CNFCreator {
 					Arrays.stream(scan.nextLine().split(" ")).mapToInt(Integer::parseInt).toArray();
 			int w = dimensions[0];
 			int h = dimensions[1];
-			new DisplayGrid(fileName, w, h);
+			new DisplayGrid(solnFile, w, h);
 		}
 	}
 }
