@@ -315,7 +315,7 @@ public class CNFCreator {
 				b = new BufferedReader(f);
 				while((line = b.readLine()) != null) {
 					if(line.equals("SAT")) continue;
-					int[] tempSol = int[] sol = Arrays.stream(line.split(" ")).
+					int[] tempSol = Arrays.stream(line.split(" ")).
 							mapToInt(Integer::parseInt).filter(cell -> cell > 0).toArray();
 					for(int i = 0; i < tempSol.length - 1; i++) { solution.add(tempSol[i]); }
 				}
