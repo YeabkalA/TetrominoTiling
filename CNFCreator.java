@@ -65,9 +65,11 @@ public class CNFCreator {
 		}
 
 		public Orientation getOrientation() { return this.orientation; }
-		public int getIndex() { return cnfInex; }
+		public int getIndex() { return cnfIndex; }
+		public int getRealIndex() { return realIndex; }
 		public int[] getCoveredCells() { return this.coveredCells; }
-		public void setIndex(int ind) { cnfInex = ind; }
+		public void setIndex(int ind) { cnfIndex = ind; }
+		public void setRealIndex(int ind) { realIndex = ind; }
 
 
 		public boolean isValid(HashSet<Integer> avoidedCells) {
@@ -100,29 +102,46 @@ public class CNFCreator {
 		private Orientation orientation;
 		private int[] coveredCells;
 		private Dimension gridDimension;
-		private int cnfInex;
+		private int cnfIndex;
+		private int realIndex;
 	}
 
 	public static class Grid {
 		public Grid(Dimension d, HashSet<Integer> avoided) {
 			this.dimension = d;
 			this.avoidedCells = new HashSet<>(avoided);
+			this.drawnTetrominos = new ArrayList<>();
 			this.tetrominoIndexMap = new HashMap<>();
 			this.tetrominos = new ArrayList<>();
 			this.coveredClauses = new ArrayList<>();
 			this.onceClauses = new ArrayList<>();
 			this.cellMap = new HashMap<>();
+			this.satisfiable = false;
 			index = 1;
+			realIndex = 1;
 		}
 		public Grid(int w, int h, HashSet<Integer> avoided) {
 			this.dimension = new Dimension(w,h);
 			this.avoidedCells = new HashSet<>(avoided);
+			this.drawnTetrominos = new ArrayList<>();
 			this.tetrominoIndexMap = new HashMap<>();
 			this.tetrominos = new ArrayList<>();
 			this.coveredClauses = new ArrayList<>();
 			this.onceClauses = new ArrayList<>();
 			this.cellMap = new HashMap<>();
+			this.satisfiable = false;
 			index = 1;
+			realIndex = 1;
+		}
+
+		public int getWDim() { return this.dimension.getWidth(); }
+		public int getHDim() { return this.dimension.getHeight(); }
+
+		public boolean isSatisfiable() { return this.satisfiable; }
+
+		public void setFileNames(String prefix) {
+			this.cnfFileName = prefix + ".cnf";
+			this.outFileName = prefix + ".out";
 		}
 
 		public void constructMap() {
@@ -145,6 +164,8 @@ public class CNFCreator {
 						new Tetromino(Orientation.LEFT, i, this.dimension),
 						new Tetromino(Orientation.RIGHT, i, this.dimension)};
 				for (Tetromino tetr: t) {
+					tetr.setRealIndex(this.realIndex);
+					this.realIndex++;
 					if(tetr.isValid(this.avoidedCells)) {
 						tetr.setIndex(this.index);
 						this.tetrominoIndexMap.put(index, tetr);
@@ -158,6 +179,8 @@ public class CNFCreator {
 		public void addAvoidedCell(int index) { this.avoidedCells.add(index); }
 
 		public HashMap<Integer, Tetromino> getTetrominoIndexMap() { return this.tetrominoIndexMap; }
+
+		public ArrayList<Tetromino> getDrawnTetrominos() { return this.drawnTetrominos; }
 
 		public int generateCoveredClauses() {
 			int size = 0;
@@ -192,8 +215,8 @@ public class CNFCreator {
 			return size;
 		}
 
-		public void generateCNFFile(int cnfSize, String fileName) throws Exception {
-			File file = new File(fileName);
+		public void generateCNFFile(int cnfSize) throws Exception {
+			File file = new File(this.cnfFileName);
 			PrintWriter writer = new PrintWriter(file);
 			writer.println("p cnf " + Integer.toString(this.tetrominos.size())
 			+ " " + Integer.toString(cnfSize));
@@ -201,16 +224,58 @@ public class CNFCreator {
 			for(String clause: onceClauses) { writer.println(clause); }
 
 			writer.close();
-		}
+		} 
 
-		public void run(String fileName) throws Exception {
+		public void runCNSGeneration() throws Exception {
 			this.fillTetrominosList();
 			this.constructMap();
 			int cnfSize = generateCoveredClauses() + generateOnceClauses();
-			generateCNFFile(cnfSize, fileName);
+			generateCNFFile(cnfSize);
+		}
+
+		public void checkIfSatisfiable() {
+			String[] minisatResult = runMinisat(this.cnfFileName, this.outFileName);
+			// Check if case is satisfied.
+			if(minisatResult[0].endsWith("UNSATISFIABLE")) {
+				System.out.println("UNSATISFIABLE");
+			} else {
+				this.satisfiable = true;
+			}
+		}
+
+		public void fillDrawnTetrominos() {
+			if(!this.satisfiable) {
+				return;
+			}
+			ArrayList<Integer> solution = new ArrayList<>();
+			FileReader f = null;
+			BufferedReader b = null;
+			String line = "";
+			try {
+				f = new FileReader(this.outFileName);
+				b = new BufferedReader(f);
+				while((line = b.readLine()) != null) {
+					System.out.println("Read ... " + line);
+					if(line.equals("SAT")) continue;
+					int[] tempSol = Arrays.stream(line.split(" ")).
+							mapToInt(Integer::parseInt).filter(cell -> cell > 0).toArray();
+					for(int i = 0; i < tempSol.length; i++) { solution.add(tempSol[i]); }
+				}
+			} catch(IOException e) {}
+
+			for(int i=0; i < solution.size(); i++) {
+				this.drawnTetrominos.add(this.getTetrominoIndexMap().get(solution.get(i)));
+			}
+		}
+
+		public void run() throws Exception {
+			this.runCNSGeneration();
+			this.checkIfSatisfiable();
+			this.fillDrawnTetrominos();
 		}
 
 		private HashMap<Integer, ArrayList<Tetromino>> cellMap;
+		private ArrayList<Tetromino> drawnTetrominos;
 		private Dimension dimension;
 		private ArrayList<Tetromino> tetrominos;
 		private HashMap<Integer, Tetromino> tetrominoIndexMap;
@@ -218,6 +283,10 @@ public class CNFCreator {
 		private ArrayList<String> onceClauses;
 		private HashSet<Integer> avoidedCells;
 		private int index;
+		private int realIndex;
+		private String cnfFileName = "a.cnf";
+		private String outFileName = "a.out";
+		private boolean satisfiable;
 	}
 
 	public static class DisplayGrid extends JFrame {
@@ -279,14 +348,6 @@ public class CNFCreator {
 									widthConst - 5, heightConst - 5);
 						}
 					});
-
-					//					mainPanel.addMouseMotionListener(new MouseAdapter() {
-					//						public void mouseMoved(MouseEvent e) {
-					//							int[] coordinate = getCoordinateFromClick(
-					//									e.getX(), e.getY(), widthConst, heightConst);
-					//							mainPanel.setToolTipText(Arrays.toString(coordinate));
-					//						}
-					//					});
 				}
 			};
 
@@ -296,40 +357,16 @@ public class CNFCreator {
 			this.setVisible(true);
 		}
 
-		public DisplayGrid(String fileName, int w, int h) {
-			Grid grid = new Grid(new Dimension(w,h), new HashSet<Integer>());
-			grid.fillTetrominosList();
-
-			ArrayList<Integer> solution = new ArrayList<>();
-			FileReader f = null;
-			BufferedReader b = null;
-			String line = "";
-			try {
-				f = new FileReader(fileName);
-				b = new BufferedReader(f);
-				while((line = b.readLine()) != null) {
-					System.out.println("Read ... " + line);
-					if(line.equals("SAT")) continue;
-					int[] tempSol = Arrays.stream(line.split(" ")).
-							mapToInt(Integer::parseInt).filter(cell -> cell > 0).toArray();
-					for(int i = 0; i < tempSol.length; i++) { solution.add(tempSol[i]); }
-				}
-			} catch(IOException e) {}
-			ArrayList<Tetromino> drawnTetrominos = new ArrayList<>();
-			System.out.println("Solution is - " + solution);
-			for(int i=0; i < solution.size(); i++) {
-				drawnTetrominos.add(grid.getTetrominoIndexMap().get(solution.get(i)));
-			}
-
-			width = w;
-			height = h;
+		public DisplayGrid(Grid grid) {		
+			width = grid.getWDim();
+			height = grid.getHDim();
 			setLayout(new BorderLayout());
 
 			Color[] colors = new Color[4];
-			colors[0] = new Color(100, 0, 0);
-			colors[1] = new Color(0, 100, 0);
-			colors[2] = new Color(100, 0, 100);
-			colors[3] = new Color(0, 0, 100);
+			colors[0] = new Color(202, 222, 0);
+			colors[1] = new Color(72, 222, 0);
+			colors[2] = new Color(72, 222, 243);
+			colors[3] = new Color(250, 0, 50);
 
 
 			mainPanel = new JPanel() {
@@ -337,10 +374,10 @@ public class CNFCreator {
 					super.paintComponent(g);
 
 					// Draw vertical lines;
-					int widthConst = 500/w;
-					int heightConst = 500/h;
+					int widthConst = 500/width;
+					int heightConst = 500/height;
 
-					for(Tetromino t: drawnTetrominos) {
+					for(Tetromino t: grid.getDrawnTetrominos()) {
 						int[] covered = t.getCoveredCells();
 						System.out.println("For " + t.getIndex() + Arrays.toString(covered));
 						if(t.getOrientation() == Orientation.LEFT) {
@@ -395,39 +432,102 @@ public class CNFCreator {
 		}
 	}
 
+	public static String[] runMinisat(String inFileName, String outFileName) {
+		String s = null;
+		String command = "./minisat " + inFileName + " " + outFileName;
+		StringBuilder output = new StringBuilder();
+		StringBuilder error = new StringBuilder();
+		try {
+			Process p = Runtime.getRuntime().exec(command);
+			BufferedReader stdInput = new BufferedReader(
+					new InputStreamReader(p.getInputStream()));
+			BufferedReader stdError = new BufferedReader(
+					new InputStreamReader(p.getErrorStream()));
+
+			while((s = stdInput.readLine()) != null) {
+				output.append(s);
+			}
+			while((s = stdError.readLine()) != null) {
+				error.append(s);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return new String[] {output.toString(), error.toString()};
+	}
+
+	// from: https://stackoverflow.com/questions/12548312/find-all-subsets-of-length-k-in-an-array
+	public static void getSubsets(ArrayList<Integer> superSet, int k, int idx,
+			Set<Integer> current,List<HashSet<Integer>> solution) {
+		if (current.size() == k) {
+			solution.add(new HashSet<>(current));
+			return;
+		}
+		if (idx == superSet.size()) return;
+		Integer x = superSet.get(idx);
+		current.add(x);
+		getSubsets(superSet, k, idx+1, current, solution);
+		current.remove(x);
+		getSubsets(superSet, k, idx+1, current, solution);
+	}
+
+	// from: https://stackoverflow.com/questions/12548312/find-all-subsets-of-length-k-in-an-array
+	public static ArrayList<HashSet<Integer>> getSubsets(ArrayList<Integer> superSet, int k) {
+		ArrayList<HashSet<Integer>> res = new ArrayList<>();
+		getSubsets(superSet, k, 0, new HashSet<Integer>(), res);
+		return res;
+	}
+
 	public static void main(String[] args) throws Exception {
 		Scanner scan = new Scanner(System.in);
 
 		System.out.println("TETROMIO SAT SOLVER TOOL");
-		System.out.println("Enter 1 to generate cnf file, 2 to get the display of the solution (if any)");
-		int choice = Integer.parseInt(scan.nextLine());
 
-		if (choice == 1) {
-			System.out.println("Enter coordinate (w h) for grid.");
-			int[] dimensions = 
-					Arrays.stream(scan.nextLine().split(" ")).mapToInt(Integer::parseInt).toArray();
-			int w = dimensions[0];
-			int h = dimensions[1];
+		System.out.println("Enter coordinate (w h) for grid.");
+		int[] dimensions = 
+				Arrays.stream(scan.nextLine().split(" ")).mapToInt(Integer::parseInt).toArray();
+		int w = dimensions[0];
+		int h = dimensions[1];
 
+		System.out.println("You can either use a GUI or specify # of monominos allowed...");
+		System.out.println("Enter 1 for GUI or 2 otherwise");
+
+		String cmd = scan.nextLine();
+
+		if(cmd.equals("1")) {
 			DisplayGrid display = new DisplayGrid(w, h);
 
 			String command = scan.nextLine();
 			if (command.equals("gen")) {
-				System.out.println("Enter file name");
-				String fileName = scan.nextLine();
+				System.out.println("Enter file prefix");
+				String filePrefix = scan.nextLine();
 				Grid grid = new Grid(new Dimension(w, h),display.selectedCells);
-				grid.run(fileName);
-				return;
+				grid.setFileNames(filePrefix);
+				grid.run();
+				new DisplayGrid(grid);
 			}
 		} else {
-			System.out.println("Enter your solution file name");
-			String solnFile = scan.nextLine();
-			System.out.println("Enter coordinate (w h) for grid.");
-			int[] dimensions = 
-					Arrays.stream(scan.nextLine().split(" ")).mapToInt(Integer::parseInt).toArray();
-			int w = dimensions[0];
-			int h = dimensions[1];
-			new DisplayGrid(solnFile, w, h);
+			System.out.println("Enter the number of monominos you want to allow");
+			int m = Integer.parseInt(scan.nextLine());
+			int gridSize = w * h;
+			ArrayList<Integer> cells = new ArrayList<>();
+			for(int i = 1; i <= gridSize; i++) {
+				cells.add(i);
+			}
+			ArrayList<HashSet<Integer>> combos = getSubsets(cells, m);
+			ArrayList<Grid> okGrids = new ArrayList<>();
+			for(HashSet<Integer> avoided: combos) {
+				Grid grid = new Grid(new Dimension(w, h), avoided);
+				grid.run();
+				if(grid.isSatisfiable()) {
+					okGrids.add(grid);
+				}
+			}
+			System.out.println("Finished grid addition");
+			for(Grid g: okGrids) {
+				new DisplayGrid(g);
+			}
 		}
+
 	}
 }
