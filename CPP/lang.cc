@@ -100,11 +100,6 @@ class Query {
         }
     }
 
-    void PrintQueryState() {
-        std::cout << "pw=" << print_width << std::endl;
-
-    }
-
     void AcceptQueries() {
         while(true) {
             std::string order;
