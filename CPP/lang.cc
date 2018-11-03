@@ -42,7 +42,7 @@ class Query {
                     AddToContainer(i);
                 }
             } else if(order.back() == 'A') {
-                RemoveToContainer(val);
+                RemoveFromContainer(val);
             } else {
                 std::cout << "Invalid query..." << std::endl;
             }
@@ -52,7 +52,7 @@ class Query {
         container.insert(num);
     }
 
-    void RemoveToContainer(int num) {
+    void RemoveFromContainer(int num) {
         container.erase(num);
     }
 
