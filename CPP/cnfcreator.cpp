@@ -2,30 +2,12 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-#include <initializer_list>
 #include <fstream>
-#include <cstdio>
-#include <memory>
-#include <stdexcept>
-#include <string>
-#include <array>
-
 #include "dimension.h"
 #include "tetromino.h"
 #include "grid.h"
 #include "lang.cc"
-
-std::string exec(const char* cmd) {
-    std::array<char, 128> buffer;
-    std::string result;
-    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
-    if (!pipe) throw std::runtime_error("popen() failed!");
-    while (!feof(pipe.get())) {
-        if (fgets(buffer.data(), 128, pipe.get()) != nullptr)
-            result += buffer.data();
-    }
-    return result;
-}
+#include "tools.cc"
 
 int main() {
   std::cout << "TETROMINO SOLVER " << std::endl;

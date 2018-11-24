@@ -2,22 +2,6 @@
 #include <vector>
 #include <unordered_set>
 
-bool NumericCheck(std::string q, int* ret) {
-    char* convered;
-    int val = strtol(q.c_str(), &convered, 10);
-    *ret = val;
-    return *convered == 0;
-}
-
-int Len(int num) {
-    int size = 0;
-    if(num == 0) return 1;
-    while(num != 0) {
-        num/=10;
-        size++;
-    }
-    return size;
-}
 class Query {
     public:
     Query(int r, int c) : row(r), column(c), max_no(r*c)
