@@ -38,9 +38,5 @@ std::string exec(const char* cmd) {
 
 bool isSatisfiable() {
     std::string result = exec("./minisat problem.cnf");
-    if (result.find("UNSATISFIABLE") !=  std::string::npos) {
-        return false;
-    } else {
-        return true;
-    }
+    return result.find("UNSATISFIABLE") == std::string::npos;
 }
