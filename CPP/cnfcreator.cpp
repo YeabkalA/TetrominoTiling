@@ -7,7 +7,6 @@
 #include "tetromino.h"
 #include "grid.h"
 #include "lang.cc"
-#include "tools.cc"
 
 int main() {
   std::cout << "TETROMINO SOLVER " << std::endl;
@@ -26,5 +25,5 @@ int main() {
   std::vector<int> avoided(q.Container().begin(), q.Container().end());
   Grid grid(d, &avoided);
   grid.Run();
-  std::cout << isSatisfiable() ? "SATISFIABLE" : "UNSATISFIABLE" << std::endl;
+  std::cout << (isSatisfiable() ? "SATISFIABLE" : "UNSATISFIABLE") << std::endl;
 }

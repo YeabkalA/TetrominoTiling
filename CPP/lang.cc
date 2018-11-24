@@ -2,6 +2,8 @@
 #include <vector>
 #include <unordered_set>
 
+#include "tools.cc"
+
 class Query {
     public:
     Query(int r, int c) : row(r), column(c), max_no(r*c)
