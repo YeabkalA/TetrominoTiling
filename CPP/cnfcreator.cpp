@@ -26,10 +26,5 @@ int main() {
   std::vector<int> avoided(q.Container().begin(), q.Container().end());
   Grid grid(d, &avoided);
   grid.Run();
-  std::string result = exec("./minisat problem.cnf");
-  if (result.find("UNSATISFIABLE") !=  std::string::npos) {
-    std::cout << "UNSATISFIABLE" << std::endl;
-  } else {
-    std::cout << "SATISFIABLE" << std::endl;
-  }
+  std::cout << isSatisfiable() ? "SATISFIABLE" : "UNSATISFIABLE" << std::endl;
 }
