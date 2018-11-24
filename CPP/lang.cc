@@ -96,6 +96,7 @@ class Query {
     }
 
     std::unordered_set<int> Container() { return container; }
+    
     private:
     std::unordered_set<int> container;
     int row;
