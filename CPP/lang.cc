@@ -2,8 +2,6 @@
 #include <vector>
 #include <unordered_set>
 
-#include "tools.cc"
-
 class Query {
     public:
     Query(int r, int c) : row(r), column(c), max_no(r*c)
@@ -11,7 +9,7 @@ class Query {
 
     void Execute(std::string order) {
         if(order == "Print") {
-            PrintState();
+            PrintState(container, column, row);
             return;
         }
         int val = -1;
@@ -48,44 +46,6 @@ class Query {
         }
     }
 
-    std::string MakePrintable(int num) {
-        std::string str_form = std::to_string(num);
-        for(int i=0; i < print_width - Len(num); i++) {
-            str_form += " ";
-        }
-        return str_form;
-    }
-
-    void PrintState() {
-        std::string dash = "_";
-        for(int i=0; i<=print_width; i++) {
-            dash += "_";
-        }
-        std::string space = " ";
-        for(int i=0; i<=print_width; i++) {
-            space += "_";
-        }
-        std::string ast = "*";
-        for(int i=0; i < print_width - 1; i++) {
-            ast += " ";
-        }
-        for (int i=0; i<row; i++) {
-            for(int j=0; j<column; j++) {
-                int no = i * column + j + 1;
-                if(container.find(no) == container.end()) {
-                    std::cout << "| " + MakePrintable(no);
-                } else {
-                    std::cout << "| " + ast;
-                }
-            }
-            std::cout << "|\n";
-            for(int i=0; i<column; i++) {
-                std::cout << dash;
-            }
-            std::cout << std::endl;
-        }
-    }
-
     void AcceptQueries() {
         while(true) {
             std::string order;
@@ -96,7 +56,7 @@ class Query {
     }
 
     std::unordered_set<int> Container() { return container; }
-    
+
     private:
     std::unordered_set<int> container;
     int row;

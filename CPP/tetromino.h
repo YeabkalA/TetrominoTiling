@@ -1,8 +1,8 @@
-/* 
+/*
    Representation of a Tetromino
    A tetromino is uniquely described by the cells that it cover
 */
-
+#include <unordered_set>
 class Tetromino {
 public:
   Tetromino(TetrominoOrientation orntn, int startingLoc,
@@ -43,7 +43,7 @@ public:
 
   // Check that a tetromino does not cover a 'bad' cell.
   // 'bad'cell - out of bounds/avoided cell.
-  bool IsValid(std::vector<int>* avoidedCells = nullptr) {
+  bool IsValid(std::unordered_set<int>* avoidedCells = nullptr) {
     if (avoidedCells != nullptr) {
       for (int cell : coveredCells) {
         if (std::find(avoidedCells->begin(), avoidedCells->end(), cell) != avoidedCells->end()) {
@@ -59,7 +59,7 @@ public:
 
     if (orientation == RIGHT) {
       return start % gridDimension.Width() != 0
-      && gridDimension.Size() - start >= 2*gridDimension.Width(); 
+      && gridDimension.Size() - start >= 2*gridDimension.Width();
     } else if (orientation == LEFT) {
       return (start - 1) % gridDimension.Width() !=0
       && gridDimension.Size() - start >= 2*gridDimension.Width();

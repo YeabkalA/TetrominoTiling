@@ -1,19 +1,20 @@
 /*
   Representation of a grid.
 */
+#include "tools.cc"
 class Grid {
 public:
   Grid(Dimension d, std::vector<int>* avoided = nullptr)
   : dimension(d), index(1) {
     if(avoided != nullptr) {
-      for(int cell: *avoided) { avoidedCells.push_back(cell); }
+      for(int cell: *avoided) { avoidedCells.insert(cell); }
     }
 }
 
 Grid(int w, int h, std::vector<int>* avoided = nullptr)
 : dimension(Dimension(w,h)), index(1) {
   if (avoided != nullptr) {
-    for(int cell: *avoided) { avoidedCells.push_back(cell); }
+    for(int cell: *avoided) { avoidedCells.insert(cell); }
   }
 }
 
@@ -51,13 +52,17 @@ void FillTetrominosList() {
    }
  }
 
- void AddAvoidedCell(int ind) { avoidedCells.push_back(ind); }
+ void AddAvoidedCell(int ind) { avoidedCells.insert(ind); }
 
  void RemoveAvoidedCell(int ind) {
-   avoidedCells.erase(std::remove(avoidedCells.begin(),
-    avoidedCells.end(), ind), avoidedCells.end());
+   avoidedCells.erase(ind);
  }
 
+ int AvoidedSize() { return avoidedCells.size(); }
+
+ void PrintGrid() {
+   PrintState(avoidedCells, dimension.Width(), dimension.Height());
+ }
  void GenerateCoveredClauses(int* size) {
   for (auto it=cellMap.begin(); it!=cellMap.end(); ++it) {
     coveredClauses.push_back("c 'COVERED'" + std::to_string(it->first));
@@ -142,5 +147,5 @@ private:
   int index;
   // List of all avoided cells in map construction.
   // Allows usage of different shapes besides rectangles.
-  std::vector<int> avoidedCells;
+  std::unordered_set<int> avoidedCells;
 };

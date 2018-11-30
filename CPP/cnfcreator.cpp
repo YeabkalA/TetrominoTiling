@@ -2,6 +2,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <unordered_set>
 #include <fstream>
 #include "dimension.h"
 #include "tetromino.h"

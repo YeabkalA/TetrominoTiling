@@ -36,28 +36,40 @@ public:
     }
 
     // Fill base sqaure
+    int horiz_count = 0;
     for(int i=1; i<=(total_width * base_square_width) - ribbon_width; i++) {
       base_square.push_back(i);
-      if(i%base_square_width == 0) {
+      horiz_count++;
+      if(horiz_count == base_square_width) {
         i += ribbon_width;
+        horiz_count = 0;
       }
     }
   }
 
   void RunExperiment(){
     Grid grid = Grid(total_width, total_width, &base_square);
+    std::cout << "base size " << base_square.size() << std::endl;
+    printVector(base_square);
+    std::vector<int> success_cells;
     int prev = ribbon[0];
     for(int i=1; i<ribbon.size(); i++) {
       grid.AddAvoidedCell(prev);
-      std::cout << "...Running experiment with " << prev << std::endl;
+      std::cout << "...Running experiment with " << prev;
+      grid.PrintGrid();
       grid.Run();
-      if(isSatisfiable()) {
-        std::cout << "Found 1: " << prev << std::endl;
+      bool satisfiable = isSatisfiable();
+      if(satisfiable) {
+        std::cout << " Yes " << std::endl;
+        success_cells.push_back(prev);
       } else {
-        std::cout << "Expriment failing at " << prev << std::endl;
+        std::cout << " No" << std::endl;
       }
+      std::cout << grid.AvoidedSize() << std::endl;
       grid.RemoveAvoidedCell(prev);
+      std::cout << grid.AvoidedSize() << std::endl;
       prev = ribbon[i];
+      std::cout << "*****************************************************";
     }
   }
 
