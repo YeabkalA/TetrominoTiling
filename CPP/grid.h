@@ -1,4 +1,3 @@
-
 /*
   Representation of a grid.
 */
@@ -13,7 +12,7 @@ public:
 
 Grid(int w, int h, std::vector<int>* avoided = nullptr)
 : dimension(Dimension(w,h)), index(1) {
-  if (avoided != nullptr) { 
+  if (avoided != nullptr) {
     for(int cell: *avoided) { avoidedCells.push_back(cell); }
   }
 }
@@ -53,6 +52,11 @@ void FillTetrominosList() {
  }
 
  void AddAvoidedCell(int ind) { avoidedCells.push_back(ind); }
+
+ void RemoveAvoidedCell(int ind) {
+   avoidedCells.erase(std::remove(avoidedCells.begin(),
+    avoidedCells.end(), ind), avoidedCells.end());
+ }
 
  void GenerateCoveredClauses(int* size) {
   for (auto it=cellMap.begin(); it!=cellMap.end(); ++it) {

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cstdio>
 #include <memory>
+#include <array>
 #include <stdexcept>
 
 
@@ -37,6 +38,14 @@ std::string exec(const char* cmd) {
 }
 
 bool isSatisfiable() {
-    std::string result = exec("./minisat problem.cnf");
+    std::string result = exec("minisat problem.cnf");
     return result.find("UNSATISFIABLE") == std::string::npos;
+}
+
+template <class T>
+void printVector(std::vector<T> vec) {
+  for(T v: vec) {
+    std::cout << v << ",";
+  }
+  std::cout << std::endl;
 }
