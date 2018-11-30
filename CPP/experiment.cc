@@ -55,7 +55,8 @@ public:
     for(int i=1; i<ribbon.size(); i++) {
       Grid grid = Grid(total_width, total_width, &base_square);
       grid.AddAvoidedCell(prev);
-      std::cout << "...Running experiment with " << prev;
+      std::cout << "...Running experiment with " << prev << std::endl;
+      grid.PrintGrid();
       grid.Run();
       bool satisfiable = isSatisfiable();
       if(satisfiable) {
