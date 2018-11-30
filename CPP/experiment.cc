@@ -48,15 +48,14 @@ public:
   }
 
   void RunExperiment(){
-    Grid grid = Grid(total_width, total_width, &base_square);
     std::cout << "base size " << base_square.size() << std::endl;
     printVector(base_square);
     std::vector<int> success_cells;
     int prev = ribbon[0];
     for(int i=1; i<ribbon.size(); i++) {
+      Grid grid = Grid(total_width, total_width, &base_square);
       grid.AddAvoidedCell(prev);
       std::cout << "...Running experiment with " << prev;
-      grid.PrintGrid();
       grid.Run();
       bool satisfiable = isSatisfiable();
       if(satisfiable) {
@@ -65,12 +64,12 @@ public:
       } else {
         std::cout << " No" << std::endl;
       }
-      std::cout << grid.AvoidedSize() << std::endl;
       grid.RemoveAvoidedCell(prev);
-      std::cout << grid.AvoidedSize() << std::endl;
       prev = ribbon[i];
-      std::cout << "*****************************************************";
+      std::cout << "*****************************************************"
+      << std::endl;
     }
+    std::cout << "Found success of : " << success_cells.size() << std::endl;
   }
 
   void PrintRibbon() {
