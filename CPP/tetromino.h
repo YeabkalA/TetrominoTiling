@@ -1,6 +1,6 @@
 /*
    Representation of a Tetromino
-   A tetromino is uniquely described by the cells that it cover
+   A tetromino is uniquely described by the cells that it covers
 */
 #include <unordered_set>
 class Tetromino {
