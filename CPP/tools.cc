@@ -7,6 +7,7 @@
 #include <memory>
 #include <array>
 #include <stdexcept>
+#include <stdlib.h>
 
 
 bool NumericCheck(std::string q, int* ret) {
@@ -38,10 +39,24 @@ std::string exec(const char* cmd) {
     return result;
 }
 
-bool isSatisfiable() {
-    std::string result = exec("minisat problem.cnf");
-    exec("rm problem.cnf");
-    return result.find("UNSATISFIABLE") == std::string::npos;
+bool isSatisfiable(const std::string file_name = "problem.cnf") {
+    std::cout << "Checking from file " << file_name << std::endl;
+    std::string cmd = "./minisat " + file_name;
+    std::string result = exec(cmd.c_str());
+    std::cout << "See..." << file_name << "<" << std::endl;
+    cmd = "rm " + file_name;
+    exec(cmd.c_str());
+    if(result.find("UNSATISFIABLE") == std::string::npos
+        && result.find("SATISFIABLE") == std::string::npos) {
+            std::cout << "Cannot find " << file_name << std::endl;
+            return false;
+    } else {
+       if(result.find("UNSATISFIABLE") == std::string::npos) {
+           std::cout << result << std::endl;
+           return true;
+       }
+       return false;
+    }
 }
 
 std::string MakePrintable(int num, int print_width) {

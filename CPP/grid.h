@@ -93,9 +93,9 @@ void GenerateOnceClauses(int* size) {
   }
 }
 
-void GenereateCNFFile(int size, const std::string& fileName) {
+void GenereateCNFFile(int size, const std::string fileName) {
   std::ofstream cnf_file;
-  cnf_file.open(fileName);
+  cnf_file.open(fileName, std::ofstream::out | std::ofstream::trunc);
 
   std::string first_line = "p cnf " + std::to_string(tetrominos.size())
   + " " + std::to_string(size);
@@ -110,7 +110,9 @@ void GenereateCNFFile(int size, const std::string& fileName) {
   cnf_file.close();
 }
 
-void Run(const std::string& file_name = "problem.cnf") {
+void Run(const std::string file_name = "problem.cnf") {
+  std::cout << "Grid.run(" << file_name << ")\n";
+  remove(file_name.c_str());
   FillTetrominosList();
   ConstructMap();
   int size = 0;
